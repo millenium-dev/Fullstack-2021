@@ -1,0 +1,121 @@
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
+
+const Person = ({person}) => { 
+  return (
+  <p>{person.name} {person.number}</p>
+  )
+}
+const Filter = (props) => { 
+  return (
+    <div>
+    filter shown with
+    <input
+    value = {props.newFilter}
+    onChange = {props.filterChange}
+    />
+    </div>
+  )
+}
+
+const PersonForm = (props) => { 
+  return (
+    <form onSubmit={props.addName}>
+    <div>
+      name: 
+      <input 
+      value ={props.newName} 
+      onChange={props.nameChange}
+      />
+    </div>
+    <div>
+      number: 
+      <input 
+      value ={props.newNumber} 
+      onChange={props.numberChange}
+      />
+      </div>
+    <div>
+      <button type="submit">add</button>
+    </div>
+  </form>
+  )
+}
+
+const Persons = (props) => { 
+  return (
+    <ul>
+    {props.result.map(person =>
+      <Person key={person.id} person={person}/>
+      )}
+
+  </ul>
+  )
+}
+
+const App = () => {
+  const [ persons, setPersons] = useState([]) 
+  const [ newName, setNewName ] = useState('')
+  const [ newNumber, setNewNumber ] = useState('')
+  const [ newFilter, setNewFilter ] = useState('')
+
+useEffect(() => {
+  console.log('effect')
+  axios
+  .get('http://localhost:3001/persons')
+  .then(response => {
+    console.log('promise fulfilled')
+    setPersons(response.data)
+  })
+}, [])
+
+  console.log('render', persons.length, 'persons')
+
+  const addName = (event) => {
+    event.preventDefault()
+    const anyPerson = persons.some(person => person.name === newName );
+    if (anyPerson === true) {
+    alert(`${newName} is already added to phonebook`);
+    }
+    else {
+    const nameObject = {
+      name: newName,
+      number: newNumber
+    }
+    setPersons(persons.concat(nameObject))
+    console.log(persons)
+    setNewName('')  
+    setNewNumber('')  
+  }
+  }
+
+ const nameChange = (event) => {
+   setNewName(event.target.value)
+ }
+
+ const numberChange = (event) => {
+  setNewNumber(event.target.value)
+}
+
+const filterChange = (event) => {
+  setNewFilter(event.target.value)
+}
+
+const result = persons.filter(person => person.name.includes(newFilter));
+
+  return (
+    <div>
+      <h2>Phonebook</h2>
+
+        <Filter newFilter = {newFilter} filterChange = {filterChange}/>
+        
+      <h3>add a new</h3>
+      <PersonForm addName = {addName} newName = {newName} nameChange = {nameChange} newNumber = {newNumber} numberChange = {numberChange}/>
+      <h2>Numbers</h2>
+      <Persons result = {result}/>
+    </div>
+  )
+
+}
+
+export default App
