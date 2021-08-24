@@ -1,0 +1,101 @@
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
+
+const OneCountryDetailed = ({country}) => { 
+  return (
+    <div>
+  <h1>{country.name} </h1>
+  capital {country.capital}
+  <br></br>
+  population {country.population}
+  <br></br>
+  <h2> languages </h2>
+
+<ul>
+  {country.languages.map(language =>
+       <li>{language.name} </li>
+      )}
+</ul>
+
+  <br></br>
+
+  <div><img id="x"alt ="Flag" width= "100" src={country.flag}/></div>  
+
+  </div>
+  )
+}
+
+const App = () => {
+  const [ countries, setCountries] = useState([]) 
+  const [ newFilter, setNewFilter] = useState('')
+  const [ oneCountry, countrySetter] = useState('')
+
+  useEffect(() => {
+    axios
+    .get('https://restcountries.eu/rest/v2/all')
+    .then(response => {
+      setCountries(response.data)
+    })
+  }, [])
+
+  var result = countries.filter(country => country.name.includes(newFilter));
+
+    const filterChange = (event) => {
+      setNewFilter(event.target.value)
+      countrySetter('')
+    }
+
+    const setToValue = (newVal) => {
+      countrySetter(newVal)
+    }
+
+    var res = countries.filter(country => country.name.includes(oneCountry));
+
+  return (
+    <div>
+      find countries
+      <input 
+       value = {newFilter}
+       onChange = {filterChange}    
+      />  
+        <div>
+      {
+        oneCountry.length > 0
+        ? 
+        res.map(country =>
+        <div>
+        <OneCountryDetailed key={country.id} country={country}/>
+        </div>
+        )
+        :result.length > 249
+        ? ''
+         :result.length > 10
+         ? 'too many matches, specify another filter'
+         : result.length > 1
+         ? result.map(country =>
+          <div> 
+         {country.name}
+          <button onClick={() => setToValue(country.name)}>
+          show
+          </button>
+          </div>
+          )
+          : result.length === 1
+          ? 
+          result.map(country =>
+            <div>
+             <OneCountryDetailed key={country.id} country={country}/>
+           </div>
+          )
+          : ''
+      }
+         </div>
+    
+    </div>
+  )
+
+  
+
+}
+
+export default App
