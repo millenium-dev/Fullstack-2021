@@ -1,0 +1,138 @@
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
+import noteService from './services/notes'  
+
+const Person = (props) => { 
+  const id = props.person.id
+  return (
+    <div>
+  <p>{props.person.name} {props.person.number}
+  <button onClick={() => props.deleter(id)}>
+      delete
+  </button>
+  </p>
+  </div>
+  )
+}
+
+const Filter = (props) => { 
+  return (
+    <div>
+    filter shown with
+    <input
+    value = {props.newFilter}
+    onChange = {props.filterChange}
+    />
+    </div>
+  )
+}
+
+const PersonForm = (props) => { 
+  return (
+    <form onSubmit={props.addName}>
+    <div>
+      name: 
+      <input 
+      value ={props.newName} 
+      onChange={props.nameChange}
+      />
+    </div>
+    <div>
+      number: 
+      <input 
+      value ={props.newNumber} 
+      onChange={props.numberChange}
+      />
+      </div>
+    <div>
+      <button type="submit">add</button>
+    </div>
+  </form>
+  )
+}
+
+const Persons = (props) => { 
+  return (
+    <ul>
+    {props.result.map(person =>
+      <Person key={person.id} person={person} deleter = {props.deleter}/>
+      )}
+
+  </ul>
+  )
+}
+
+const App = () => {
+  const [ persons, setPersons] = useState([]) 
+  const [ newName, setNewName ] = useState('')
+  const [ newNumber, setNewNumber ] = useState('')
+  const [ newFilter, setNewFilter ] = useState('')
+
+useEffect(() => {
+  noteService
+  .getAll()
+  .then(response => {
+    setPersons(response.data)
+  })
+}, [])
+
+  const addName = (event) => {
+    event.preventDefault()
+    const anyPerson = persons.some(person => person.name === newName );
+    if (anyPerson === true) {
+    alert(`${newName} is already added to phonebook`);
+    }
+    else {
+    const nameObject = {
+      name: newName,
+      number: newNumber
+    }
+    noteService
+    .create(nameObject)
+    .then(response => {
+      setPersons(persons.concat(response.data))
+      setNewName('')  
+      setNewNumber('')  
+    })
+  }
+  }
+
+ const nameChange = (event) => {
+   setNewName(event.target.value)
+ }
+
+ const numberChange = (event) => {
+  setNewNumber(event.target.value)
+}
+
+const filterChange = (event) => {
+  setNewFilter(event.target.value)
+}
+
+const deleter = (id) => {
+  if(window.confirm("Sure?"))
+  noteService
+  .deleter(id)
+  .then(response => {
+    const res = persons.filter(person => person.id !== id)
+    setPersons(res);
+  })
+}
+const result = persons.filter(person => person.name.includes(newFilter));
+
+  return (
+    <div>
+      <h2>Phonebook</h2>
+
+      <Filter newFilter = {newFilter} filterChange = {filterChange}/>
+        
+      <h3>add a new</h3>
+      <PersonForm addName = {addName} newName = {newName} nameChange = {nameChange} newNumber = {newNumber} numberChange = {numberChange}/>
+      <h2>Numbers</h2>
+      <Persons result = {result} deleter = {deleter}/>
+    </div>
+  )
+
+}
+
+export default App
